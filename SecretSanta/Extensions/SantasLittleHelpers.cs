@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SecretSanta.Extentions
+namespace SecretSanta.Extensions
 {
     public static class SantasLittleHelpers
     {

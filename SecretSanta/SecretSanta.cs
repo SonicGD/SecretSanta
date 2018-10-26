@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using SecretSanta.Extentions;
+using SecretSanta.Extensions;
 
 namespace SecretSanta
 {
