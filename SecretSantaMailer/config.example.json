@@ -1,0 +1,8 @@
+{
+  "SANTA_SMTP_HOST": "localhost",
+  "SANTA_SMTP_PORT": 25,
+  "SANTA_SMTP_FROM_EMAIL": "root@localhost",
+  "SANTA_SMTP_USER_NAME": "root",
+  "SANTA_SMTP_PASSWORD": "123",
+  "SANTA_SMTP_USE_TLS": false
+}
