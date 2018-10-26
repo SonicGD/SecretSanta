@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SecretSanta.Extentions
 {
     public static class SantasLittleHelpers
     {
-        public static IList<T> GetShuffle<T>(this IList<T> source)
+        public static IList<T> GetShuffle<T>(this IEnumerable<T> source)
         {
             var rand = new Random();
             return source.OrderBy(x => rand.Next()).ToList();
@@ -27,7 +25,7 @@ namespace SecretSanta.Extentions
                 yield break;
             }
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 foreach(var subPerm in source.GetPermutations(count - 1))
                 {

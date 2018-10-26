@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 using SecretSanta;
 
@@ -18,12 +16,12 @@ namespace SecretSantaConsole
             try
             {
                 Console.WriteLine("Starting...");
-                CreateSanatasList(args);
+                CreateSantasList(args);
                 Console.WriteLine("Complete!");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("An error has occured: {0}", ex.ToString());
+                Console.WriteLine($"An error has occured: {ex}");
             }
             finally
             {
@@ -32,12 +30,12 @@ namespace SecretSantaConsole
             }
         }
 
-        private static void CreateSanatasList(string[] args)
+        private static void CreateSantasList(string[] args)
         {
             IList<string> participants = ReadFile(args[0]);
 
             IDictionary<string, string> bannedPairs = new Dictionary<string, string>();
-            string outputFile = string.Empty;
+            string outputFile;
 
             switch (args.Length)
             {

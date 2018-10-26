@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace SecretSanta_Test
+﻿namespace SecretSanta_Test
 {
     public class Participant
     {
