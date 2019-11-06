@@ -1,53 +1,68 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using SecretSanta;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace SecretSantaMailer
 {
     class Program
     {
-        static async Task Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            if (args.Length == 0)
+            using (var host = CreateHostBuilder(args).Build())
             {
-                throw new ArgumentException("You must provide path to participants file as first argument");
+                await host.StartAsync();
+
+                var sender = host.Services.GetRequiredService<Sender>();
+                await sender.SendAsync();
+
+                await host.StopAsync();
+                await host.WaitForShutdownAsync();
             }
+        }
 
-            var participantsPath = args[0];
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration(builder => { builder.AddJsonFile("./config.json"); })
+                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+    }
 
-            if (!File.Exists(participantsPath))
-            {
-                throw new ArgumentException($"File {participantsPath} doesn't exists");
-            }
+    public class Startup
+    {
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
 
-            var configuration = new ConfigurationBuilder()
-                .AddJsonFile("./config.json")
-                .Build();
+        public IConfiguration Configuration { get; }
 
-            var json = File.ReadAllText(participantsPath);
-            var participants = JsonConvert.DeserializeObject<List<Participant>>(json);
-            var santasList = SecretSantaGenerator.Generate(participants, new Dictionary<Participant, Participant>());
-
+        // This method gets called by the runtime. Use this method to add services to the container.
+        public void ConfigureServices(IServiceCollection services)
+        {
             var smtpConfig = new SMTPMailConfig
             {
-                Host = configuration["SANTA_SMTP_HOST"],
-                Port = int.Parse(configuration["SANTA_SMTP_PORT"]),
-                FromEmail = configuration["SANTA_SMTP_FROM_EMAIL"],
-                UserName = configuration["SANTA_SMTP_USER_NAME"],
-                Password = configuration["SANTA_SMTP_PASSWORD"],
-                UseTLS = bool.Parse(configuration["SANTA_SMTP_USE_TLS"])
+                Host = Configuration["SANTA_SMTP_HOST"],
+                Port = int.Parse(Configuration["SANTA_SMTP_PORT"]),
+                FromEmail = Configuration["SANTA_SMTP_FROM_EMAIL"],
+                UserName = Configuration["SANTA_SMTP_USER_NAME"],
+                Password = Configuration["SANTA_SMTP_PASSWORD"],
+                UseTLS = bool.Parse(Configuration["SANTA_SMTP_USE_TLS"])
             };
+            services.AddSingleton(smtpConfig);
+            services.AddControllersWithViews();
+            services.AddRazorPages();
+            services.AddHttpContextAccessor();
+            services.AddSingleton<MailSender<Participant>>();
+            services.AddControllersWithViews();
+            services.AddSingleton<ViewRenderService>();
+            services.AddSingleton<Sender>();
+        }
 
-            var loggerFactory = new LoggerFactory();
-            loggerFactory.AddConsole();
-            var logger = loggerFactory.CreateLogger<MailSender<Participant>>();
-            var mailer = new MailSender<Participant>(smtpConfig, logger);
-            await mailer.SendMail(santasList, "Secret Santa 2018", "~/Views/Mail.cshtml");
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
         }
     }
 }
